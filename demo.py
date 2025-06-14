@@ -1,5 +1,5 @@
 import cv2
-import mediapipe as mp
+import mediapipe as mp # type: ignore
 import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
@@ -44,31 +44,30 @@ with mp_hands.Hands(
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
+                # Index finger tip position
                 x = int(hand_landmarks.landmark[8].x * image_width)
                 y = int(hand_landmarks.landmark[8].y * image_height)
+                y_middle = int(hand_landmarks.landmark[12].y * image_height)
+                y_ring   = int(hand_landmarks.landmark[16].y * image_height)
+                y_pinky  = int(hand_landmarks.landmark[20].y * image_height)
 
-                # kiểm tra khoảng cách giữa ngón trỏ và ngón cái
-                x_thumb = int(hand_landmarks.landmark[4].x * image_width)
-                y_thumb = int(hand_landmarks.landmark[4].y * image_height)
-                distance = np.hypot(x - x_thumb, y - y_thumb)
+        # Detect only index finger raised
+                if y < y_middle - 20 and y < y_ring - 20 and y < y_pinky - 20:
+                    drawing = True
+                    points.append([x, y])
+                else:
+                    drawing = False
 
-                drawing = distance < 30
-
-                # Kiểm tra nếu ngón trỏ chạm vào vùng clear zone
+        # Clear zone check
                 if x < clear_zone_x and y < clear_zone_y:
                     points.clear()
-
-                # nếu đang vẽ thì thêm điểm mới
-                if drawing:
-                    points.append([x, y])
-
-        # Vẽ tất cả các đường nối giữa các điểm đã lưu
+                    drawing = False
+        # draw points
         if len(points) > 1:
             for i in range(1, len(points)):
                 cv2.line(img2, (points[i-1][0], points[i-1][1]), (points[i][0], points[i][1]), (0, 0, 255), 5)
 
-        # Vẽ nút xoá (vùng màu xanh ở góc trái trên)
+        # clear button position
         cv2.rectangle(img2, (0, 0), (clear_zone_x, clear_zone_y), (0, 255, 0), cv2.FILLED)
         cv2.putText(img2, 'CLEAR', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
