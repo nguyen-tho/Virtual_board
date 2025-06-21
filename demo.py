@@ -43,10 +43,13 @@ with mp_hands.Hands(
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                mp_drawing.draw_landmarks(img2, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 # Index finger tip position
                 x = int(hand_landmarks.landmark[8].x * image_width)
                 y = int(hand_landmarks.landmark[8].y * image_height)
+                cv2.circle(img2, (x, y), 10, (0, 255, 0), -1)
+                
+                # y value of the other fingers
                 y_middle = int(hand_landmarks.landmark[12].y * image_height)
                 y_ring   = int(hand_landmarks.landmark[16].y * image_height)
                 y_pinky  = int(hand_landmarks.landmark[20].y * image_height)
